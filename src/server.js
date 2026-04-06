@@ -74,11 +74,27 @@ app.get('/health', (req, res) => {
 });
 
 // Pusher Auth Endpoint (For private/presence channels)
-app.post('/api/pusher/auth', (req, res) => {
+// Needs to be protected to get req.user
+app.post('/api/pusher/auth', require('./middleware/auth').protect, (req, res) => {
   const socketId = req.body.socket_id;
   const channel = req.body.channel_name;
-  const auth = pusher.authenticate(socketId, channel);
-  res.send(auth);
+  
+  // Presence channels MUST have user data
+  const presenceData = {
+    user_id: req.user._id.toString(),
+    user_info: {
+      name: `${req.user.firstName} ${req.user.lastName}`,
+      role: req.user.role
+    }
+  };
+
+  try {
+    const auth = pusher.authenticate(socketId, channel, presenceData);
+    res.send(auth);
+  } catch (error) {
+    console.error('Pusher Auth Error:', error);
+    res.status(403).send('Forbidden');
+  }
 });
 
 // Error handling middleware
