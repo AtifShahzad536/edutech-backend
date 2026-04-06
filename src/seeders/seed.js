@@ -280,7 +280,7 @@ async function seed() {
     console.log('✅ Enrolled students in courses');
 
     // ── 4. LIVE CLASSES ────────────────────────────────────────────
-    const { v4: uuidv4 } = require('uuid');
+    const crypto = require('crypto');
 
     const liveClassesData = [
       {
@@ -291,7 +291,7 @@ async function seed() {
         module: 'React Advanced Patterns',
         status: 'upcoming',
         scheduledFor: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-        roomId: uuidv4()
+        roomId: crypto.randomUUID()
       },
       {
         title: 'ML Model Deployment Workshop',
@@ -302,7 +302,7 @@ async function seed() {
         status: 'live',
         scheduledFor: new Date(),
         startedAt: new Date(Date.now() - 20 * 60 * 1000),
-        roomId: uuidv4()
+        roomId: crypto.randomUUID()
       },
       {
         title: 'CSS Grid Masterclass - Recorded',
@@ -317,7 +317,7 @@ async function seed() {
         duration: '90 min',
         recordingUrl: 'https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
         addedToCurriculum: true,
-        roomId: uuidv4()
+        roomId: crypto.randomUUID()
       }
     ];
 

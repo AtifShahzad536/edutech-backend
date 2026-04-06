@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Course = require('../models/Course');
 const LiveClass = require('../models/LiveClass');
 const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 // @desc    Start a live class (Instructor only)
 // @route   POST /api/live/start
@@ -19,7 +19,7 @@ const startLiveClass = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to go live for this course' });
     }
 
-    const roomId = uuidv4();
+    const roomId = crypto.randomUUID();
 
     const liveClass = await LiveClass.create({
       title: title || `${course.title} - Live Session`,
@@ -260,7 +260,7 @@ const scheduleLiveClass = async (req, res) => {
       module: 'Live Session',
       status: 'upcoming',
       scheduledFor: new Date(scheduledFor),
-      roomId: uuidv4()
+      roomId: crypto.randomUUID()
     });
 
     await liveClass.populate('instructor', 'firstName lastName avatar');
