@@ -130,16 +130,19 @@ const getDashboardStats = async (req, res) => {
 
     // ── 9. Skill distribution from categories ─────────
     const categoryMap = {};
-    enrolledCourseIds.forEach(() => {}); // placeholder
-    courseProgressDocs.forEach(p => {
-      const cat = p.course?.category || 'Other';
+    const populatedCourses = await Course.find({ _id: { $in: enrolledCourseIds } });
+    
+    populatedCourses.forEach(course => {
+      const cat = course.category || 'Other';
       if (!categoryMap[cat]) categoryMap[cat] = 0;
-      categoryMap[cat] += p.progressPercent;
+      // Weight skills by progress in that category
+      const prog = enrolledCoursesData.find(p => p.id?.toString() === course._id.toString());
+      categoryMap[cat] += prog ? prog.progress : 0;
     });
 
     const skillData = Object.entries(categoryMap).map(([subject, value]) => ({
       subject,
-      A: Math.min(Math.round(value), 100),
+      A: Math.min(Math.round(value / Math.max(1, populatedCourses.filter(c => c.category === subject).length)), 100),
       fullMark: 100
     }));
 

@@ -272,6 +272,30 @@ const scheduleLiveClass = async (req, res) => {
   }
 };
 
+// @desc    Trigger a Pusher event (Real-time signaling/chat)
+// @route   POST /api/live/pusher/trigger
+// @access  Private
+const pusherTrigger = async (req, res) => {
+  try {
+    const { event, data, channel } = req.body;
+    
+    if (!event || !channel || !data) {
+      return res.status(400).json({ success: false, message: 'Missing event, channel, or data' });
+    }
+
+    const pusher = req.app.get('pusher');
+    if (!pusher) {
+      return res.status(500).json({ success: false, message: 'Pusher not initialized' });
+    }
+
+    await pusher.trigger(channel, event, data);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Pusher Trigger Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   startLiveClass,
   endLiveClass,
@@ -279,5 +303,6 @@ module.exports = {
   getLiveClasses,
   getLiveClassById,
   updateStatus,
-  scheduleLiveClass
+  scheduleLiveClass,
+  pusherTrigger
 };

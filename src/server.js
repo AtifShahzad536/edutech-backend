@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
+const Pusher = require('pusher');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -12,12 +12,18 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "*",
-    methods: ["GET", "POST"]
-  }
+
+// Initialize Pusher for serverless real-time (Vercel compatible)
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
 });
+
+// Make pusher accessible to all routes
+app.set('pusher', pusher);
 
 // Stripe Webhook MUST be routed before express.json()
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), require('./controllers/paymentController').handleWebhook);
@@ -67,58 +73,12 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'active', message: 'EduTech API is operational' });
 });
 
-// Socket.io Signaling Logic
-const rooms = new Map();
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join-stream', ({ roomId, userId, userName, role }) => {
-    socket.join(roomId);
-    console.log(`${userName} (${role}) joined room: ${roomId}`);
-    if (!rooms.has(roomId)) {
-      rooms.set(roomId, new Set());
-    }
-    rooms.get(roomId).add(socket.id);
-    socket.to(roomId).emit('user-joined', { userId: socket.id, userName, role });
-  });
-
-  socket.on('offer', ({ offer, to }) => {
-    socket.to(to).emit('offer', { offer, from: socket.id });
-  });
-
-  socket.on('answer', ({ answer, to }) => {
-    socket.to(to).emit('answer', { answer, from: socket.id });
-  });
-
-  socket.on('ice-candidate', ({ candidate, to }) => {
-    socket.to(to).emit('ice-candidate', { candidate, from: socket.id });
-  });
-
-  socket.on('chat-message', ({ roomId, senderName, text, isHost }) => {
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    socket.to(roomId).emit('chat-message', {
-      id: Date.now(),
-      name: senderName,
-      text,
-      time,
-      isHost: !!isHost,
-    });
-  });
-
-  socket.on('disconnecting', () => {
-    for (const roomId of socket.rooms) {
-      if (rooms.has(roomId)) {
-        rooms.get(roomId).delete(socket.id);
-        socket.to(roomId).emit('user-left', { userId: socket.id });
-      }
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
+// Pusher Auth Endpoint (For private/presence channels)
+app.post('/api/pusher/auth', (req, res) => {
+  const socketId = req.body.socket_id;
+  const channel = req.body.channel_name;
+  const auth = pusher.authenticate(socketId, channel);
+  res.send(auth);
 });
 
 // Error handling middleware

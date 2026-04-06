@@ -269,12 +269,12 @@ async function seed() {
     const [webDev, dataSci, uiux, react, marketing, business] = courses;
     console.log(`✅ Seeded ${courses.length} courses`);
 
-    // ── 3. ENROLL STUDENTS ────────────────────────────────────────
-    john.enrolledCourses = [webDev._id, react._id];
-    emily.enrolledCourses = [webDev._id, uiux._id];
-    ahmed.enrolledCourses = [dataSci._id, webDev._id];
-    lisa.enrolledCourses = [marketing._id, business._id];
-    alex.enrolledCourses = [react._id, webDev._id];
+    // ── 3. ENROLL STUDENTS (Clearing for clean testing) ──
+    john.enrolledCourses = [];
+    emily.enrolledCourses = [];
+    ahmed.enrolledCourses = [];
+    lisa.enrolledCourses = [];
+    alex.enrolledCourses = [];
 
     await Promise.all([john.save(), emily.save(), ahmed.save(), lisa.save(), alex.save()]);
     console.log('✅ Enrolled students in courses');

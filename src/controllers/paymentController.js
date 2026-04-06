@@ -109,9 +109,39 @@ const getUploadSignature = async (req, res, next) => {
   }
 };
 
+// ─────────────────────────────────────────────
+// @desc    Verify Stripe session after redirect
+// @route   GET /api/payments/verify/:sessionId
+// @access  Private
+// ─────────────────────────────────────────────
+const verifyCheckoutSession = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+    const result = await stripeService.verifySession(sessionId);
+    
+    if (result.success) {
+      res.status(200).json({ 
+        success: true, 
+        message: 'Payment verified and courses enrolled successfully',
+        data: result
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        message: `Payment status: ${result.status}`,
+        data: result
+      });
+    }
+  } catch (error) {
+    console.error('Session Verification Controller Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCheckoutSession,
   handleWebhook,
+  verifyCheckoutSession,
   getSessionDetails,
   getPaymentHistory,
   getUploadSignature

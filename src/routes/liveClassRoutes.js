@@ -6,7 +6,8 @@ const {
   getLiveClasses,
   getLiveClassById,
   updateStatus,
-  scheduleLiveClass
+  scheduleLiveClass,
+  pusherTrigger
 } = require('../controllers/liveClassController');
 const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
@@ -27,5 +28,8 @@ router.post('/start', authorize('instructor', 'admin'), startLiveClass);
 router.post('/schedule', authorize('instructor', 'admin'), scheduleLiveClass);
 router.post('/:id/end', authorize('instructor', 'admin'), endLiveClass);
 router.patch('/:id/status', authorize('instructor', 'admin'), updateStatus);
+
+// Real-time Trigger (Serverless-friendly)
+router.post('/pusher/trigger', pusherTrigger);
 
 module.exports = router;

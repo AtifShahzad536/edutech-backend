@@ -61,14 +61,23 @@ const stripeService = {
       const session = event.data.object;
       const { courseIds, userId } = session.metadata;
       const ids = JSON.parse(courseIds);
+      await stripeService.enrollUser(userId, ids);
+      console.log(`✅ Enrolled User ${userId} in: ${ids.join(', ')}`);
+    }
 
+    return { received: true };
+  },
+
+  // ── Reusable Enrollment Helper ──────────────────────────────────────────────
+  enrollUser: async (userId, courseIds) => {
+    try {
       // 1. Enroll student in all purchased courses
       await User.findByIdAndUpdate(userId, {
-        $addToSet: { enrolledCourses: { $each: ids } }
+        $addToSet: { enrolledCourses: { $each: courseIds } }
       });
 
       // 2. Create CourseProgress records for each course
-      const progressOps = ids.map(courseId =>
+      const progressOps = courseIds.map(courseId =>
         CourseProgress.findOneAndUpdate(
           { student: userId, course: courseId },
           { student: userId, course: courseId, lastAccessedAt: new Date() },
@@ -79,12 +88,12 @@ const stripeService = {
 
       // 3. Increment students count on each course
       await Course.updateMany(
-        { _id: { $in: ids } },
+        { _id: { $in: courseIds } },
         { $inc: { studentsCount: 1 } }
       );
 
       // 4. Create enrollment notifications
-      const courses = await Course.find({ _id: { $in: ids } });
+      const courses = await Course.find({ _id: { $in: courseIds } });
       const notifOps = courses.map(course =>
         Notification.create({
           user: userId,
@@ -94,11 +103,28 @@ const stripeService = {
         })
       );
       await Promise.all(notifOps);
-
-      console.log(`✅ Enrolled User ${userId} in: ${ids.join(', ')}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Enrollment Helper Error:', error);
+      throw error;
     }
+  },
 
-    return { received: true };
+  // ── Verify session status (Manual Fallback) ─────────────────────────────────
+  verifySession: async (sessionId) => {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      if (session.payment_status === 'paid') {
+        const { courseIds, userId } = session.metadata;
+        const ids = JSON.parse(courseIds);
+        await stripeService.enrollUser(userId, ids);
+        return { success: true, userId, courseIds: ids };
+      }
+      return { success: false, status: session.payment_status };
+    } catch (error) {
+      console.error('❌ Session Verification Error:', error);
+      throw error;
+    }
   },
 
   // ── Get payment history for a user from Stripe ────────────────────────────
