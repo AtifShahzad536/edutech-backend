@@ -1,140 +1,86 @@
 const stripeService = require('../services/stripeService');
-const Course = require('../models/Course');
+const cloudinaryService = require('../services/cloudinaryService');
+const courseRepository = require('../repositories/course.repository');
+const { successResponse } = require('../utils/response.util');
+const AppError = require('../utils/appError');
 
-// ─────────────────────────────────────────────
-// @desc    Create Stripe Checkout Session for cart purchase
-// @route   POST /api/payments/checkout
-// @access  Private
-// ─────────────────────────────────────────────
 const createCheckoutSession = async (req, res, next) => {
   try {
     const { courseIds } = req.body;
-
-    if (!courseIds || !Array.isArray(courseIds) || courseIds.length === 0) {
-      return res.status(400).json({ success: false, message: 'Please provide at least one course ID' });
-    }
-
-    const courses = await Course.find({ _id: { $in: courseIds } });
+    const courses = await courseRepository.findCoursesByIds(courseIds);
 
     if (courses.length === 0) {
-      return res.status(404).json({ success: false, message: 'No courses found' });
+      throw new AppError('No courses found', 404);
     }
 
-    // Filter out free courses (price === 0) — those should use /enroll-free
     const paidCourses = courses.filter(c => c.price > 0);
     if (paidCourses.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'All selected courses are free. Use the enroll-free endpoint.'
-      });
+      throw new AppError('All selected courses are free. Use the enroll-free endpoint.', 400);
     }
 
     const session = await stripeService.createCheckoutSession(paidCourses, req.user);
-
-    res.status(200).json({ success: true, data: session.url });
+    return res.status(200).json(successResponse(session.url));
   } catch (error) {
     next(error);
   }
 };
 
-// ─────────────────────────────────────────────
-// @desc    Handle Stripe Webhooks
-// @route   POST /api/payments/webhook
-// @access  Public (Stripe calls directly)
-// ─────────────────────────────────────────────
 const handleWebhook = async (req, res, next) => {
   try {
     const signature = req.headers['stripe-signature'];
     const payload = req.rawBody || req.body;
     const result = await stripeService.handleWebhook(payload, signature);
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Webhook Controller Error:', error.message);
     res.status(400).send(`Webhook Error: ${error.message}`);
   }
 };
 
-// ─────────────────────────────────────────────
-// @desc    Get Stripe session details (real amount for success screen)
-// @route   GET /api/payments/session/:sessionId
-// @access  Private
-// ─────────────────────────────────────────────
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const getSessionDetails = async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    res.json({
-      success: true,
-      data: {
-        amountTotal: session.amount_total / 100,
-        currency: session.currency?.toUpperCase() || 'USD',
-        paymentStatus: session.payment_status,
-        customerEmail: session.customer_email,
-      }
-    });
+    const stripe = require('stripe')(require('../config/env').STRIPE.SECRET_KEY);
+    const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+    return res.json(successResponse({
+      amountTotal: session.amount_total / 100,
+      currency: session.currency?.toUpperCase() || 'USD',
+      paymentStatus: session.payment_status,
+      customerEmail: session.customer_email,
+    }));
   } catch (error) {
     console.error('Session Retrieve Error:', error.message);
-    res.status(400).json({ success: false, message: 'Could not retrieve session details' });
+    next(new AppError('Could not retrieve session details', 400));
   }
 };
 
-// ─────────────────────────────────────────────
-// @desc    Get student payment history from Stripe
-// @route   GET /api/payments/history
-// @access  Private
-// ─────────────────────────────────────────────
 const getPaymentHistory = async (req, res, next) => {
   try {
     const history = await stripeService.getPaymentHistory(req.user.email);
-    res.status(200).json({ success: true, data: history });
+    return res.status(200).json(successResponse(history));
   } catch (error) {
     next(error);
   }
 };
 
-// ─────────────────────────────────────────────
-// @desc    Get Cloudinary Signature for Secure Uploads
-// @route   GET /api/payments/upload-signature
-// @access  Private
-// ─────────────────────────────────────────────
-const cloudinaryService = require('../services/cloudinaryService');
 const getUploadSignature = async (req, res, next) => {
   try {
-    const { folder } = req.query;
-    const signatureData = cloudinaryService.generateSignature(folder);
-    res.status(200).json({ success: true, data: signatureData });
+    const signatureData = cloudinaryService.generateSignature(req.query.folder);
+    return res.status(200).json(successResponse(signatureData));
   } catch (error) {
     next(error);
   }
 };
 
-// ─────────────────────────────────────────────
-// @desc    Verify Stripe session after redirect
-// @route   GET /api/payments/verify/:sessionId
-// @access  Private
-// ─────────────────────────────────────────────
 const verifyCheckoutSession = async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
-    const result = await stripeService.verifySession(sessionId);
-    
+    const result = await stripeService.verifySession(req.params.sessionId);
     if (result.success) {
-      res.status(200).json({ 
-        success: true, 
-        message: 'Payment verified and courses enrolled successfully',
-        data: result
-      });
-    } else {
-      res.status(400).json({ 
-        success: false, 
-        message: `Payment status: ${result.status}`,
-        data: result
-      });
+      return res.status(200).json(successResponse(result, 'Payment verified and courses enrolled successfully'));
     }
+    throw new AppError(`Payment status: ${result.status}`, 400);
   } catch (error) {
     console.error('Session Verification Controller Error:', error.message);
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

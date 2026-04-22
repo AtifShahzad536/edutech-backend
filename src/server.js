@@ -1,118 +1,41 @@
-const express = require('express');
 const http = require('http');
-const Pusher = require('pusher');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 // Load environment variables
 dotenv.config();
 
-const app = express();
-const server = http.createServer(app);
-
-// Initialize Pusher for serverless real-time (Vercel compatible)
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.error(err.name, err.message, err.stack);
+  process.exit(1);
 });
+
+const app = require('./app');
+const pusher = require('./config/pusher');
+
+// 🚀 INITIALIZE BACKGROUND WORKERS (Enterprise Scalability)
+// These listen for tasks in the Redis Queues
+require('./workers/emailWorker');
 
 // Make pusher accessible to all routes
 app.set('pusher', pusher);
 
-// Stripe Webhook MUST be routed before express.json()
-app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), require('./controllers/paymentController').handleWebhook);
-
-// Standard Middleware
-app.use(cors());
-app.use(helmet({
-  contentSecurityPolicy: false,
-}));
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-
-// Global Error Handlers
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
-});
-
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-
-// Mount Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/courses', require('./routes/courseRoutes'));
-app.use('/api/admin', adminRoutes);
-app.use('/api/payments', require('./routes/paymentRoutes'));
-app.use('/api/uploads', uploadRoutes);
-app.use('/api/users/profile', profileRoutes);
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/dashboard', require('./routes/dashboardRoutes'));
-app.use('/api/discussions', require('./routes/discussionRoutes'));
-app.use('/api/live', require('./routes/liveClassRoutes'));
-app.use('/api/assignments', require('./routes/assignmentRoutes'));
-app.use('/api/instructor', require('./routes/instructorRoutes'));
-app.use('/api/recommendations', require('./routes/recommendationRoutes'));
-app.use('/api/home', require('./routes/homeRoutes'));
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'active', message: 'EduTech API is operational' });
-});
-
-// Pusher Auth Endpoint (For private/presence channels)
-// Needs to be protected to get req.user
-app.post('/api/pusher/auth', require('./middleware/auth').protect, (req, res) => {
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-  
-  // Presence channels MUST have user data
-  const presenceData = {
-    user_id: req.user._id.toString(),
-    user_info: {
-      name: `${req.user.firstName} ${req.user.lastName}`,
-      role: req.user.role
-    }
-  };
-
-  try {
-    const auth = pusher.authenticate(socketId, channel, presenceData);
-    res.send(auth);
-  } catch (error) {
-    console.error('Pusher Auth Error:', error);
-    res.status(403).send('Forbidden');
-  }
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Server Error'
-  });
-});
+const server = http.createServer(app);
 
 // Start Server
 const startServer = async () => {
   try {
+    // 1) Connect to Database
     await connectDB();
-    const PORT = process.env.PORT || 5000;
+    console.log('📦 Database connection successful');
+
+    // 2) Listen on Port
+    const PORT = require('./config/env').PORT;
     server.listen(PORT, () => {
       console.log(`🚀 EduTech API Server running on port ${PORT}`);
+      console.log(`🌍 Mode: ${require('./config/env').NODE_ENV}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
@@ -121,3 +44,20 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Handle unhandled rejections
+process.on('unhandledRejection', (err) => {
+  console.error('❌ UNHANDLED REJECTION! 💥 Shutting down...');
+  console.error(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+// Handle SIGTERM (e.g., from Heroku or Docker)
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+  server.close(() => {
+    console.log('💥 Process terminated!');
+  });
+});

@@ -1,0 +1,28 @@
+﻿  console.log
+    ΓÜí Redis Connected
+
+      at EventEmitter.log (src/services/cacheService.js:16:13)
+
+  console.log
+    ≡ƒÜÇ Redis detected! High-performance features enabled.
+
+      at EventEmitter.log (src/config/redis.js:34:11)
+
+::ffff:127.0.0.1 - - [12/Apr/2026:17:40:09 +0000] "POST /api/assignments HTTP/1.1" 201 387 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:40:10 +0000] "POST /api/assignments/69dbd8fac2fa126a59dc60d8/submit HTTP/1.1" 201 376 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:40:11 +0000] "GET /api/assignments/student HTTP/1.1" 500 2015 "-" "-"
+  console.error
+    Γ¥î Redis Error: read ECONNRESET
+
+    [0m [90m 23 |[39m       [90m// Sliently handle connection refused[39m
+     [90m 24 |[39m     } [36melse[39m {
+    [31m[1m>[22m[39m[90m 25 |[39m       console[33m.[39merror([32m'Γ¥î Redis Error:'[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 26 |[39m     }
+     [90m 27 |[39m   })[33m;[39m
+     [90m 28 |[39m[0m
+
+      at EventEmitter.error (src/services/cacheService.js:25:15)
+      at EventEmitter.silentEmit (node_modules/ioredis/built/Redis.js:529:30)
+      at Socket.<anonymous> (node_modules/ioredis/built/redis/event_handler.js:221:14)
+

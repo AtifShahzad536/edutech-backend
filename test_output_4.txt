@@ -1,0 +1,42 @@
+﻿  console.warn
+    ΓÜá∩╕Å Redis offline. Running in standard mode (No-Cache/Direct-Emails).
+
+    [0m [90m 40 |[39m setTimeout(() [33m=>[39m {
+     [90m 41 |[39m   [36mif[39m ([33m![39mredisStatus[33m.[39misAvailable) {
+    [31m[1m>[22m[39m[90m 42 |[39m     console[33m.[39mwarn([32m'ΓÜá∩╕Å Redis offline. Running in standard mode (No-Cache/Direct-Emails).'[39m)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 43 |[39m     checkClient[33m.[39mdisconnect()[33m;[39m
+     [90m 44 |[39m   }
+     [90m 45 |[39m }[33m,[39m [35m1000[39m)[33m;[39m[0m
+
+      at Timeout.warn [as _onTimeout] (src/config/redis.js:42:13)
+
+  console.log
+    ≡ƒÜÇ Redis detected! High-performance features enabled.
+
+      at EventEmitter.log (src/config/redis.js:34:11)
+
+  console.log
+    ΓÜí Redis Connected
+
+      at EventEmitter.log (src/services/cacheService.js:16:13)
+
+::ffff:127.0.0.1 - - [12/Apr/2026:17:24:33 +0000] "POST /api/payments/checkout HTTP/1.1" 200 69 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:24:34 +0000] "POST /api/payments/checkout HTTP/1.1" 400 133 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:24:36 +0000] "GET /api/payments/verify/test_session_id HTTP/1.1" 200 154 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:24:37 +0000] "POST /api/payments/webhook HTTP/1.1" 200 17 "-" "-"
+  console.error
+    Γ¥î Redis Error: read ECONNRESET
+
+    [0m [90m 23 |[39m       [90m// Sliently handle connection refused[39m
+     [90m 24 |[39m     } [36melse[39m {
+    [31m[1m>[22m[39m[90m 25 |[39m       console[33m.[39merror([32m'Γ¥î Redis Error:'[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 26 |[39m     }
+     [90m 27 |[39m   })[33m;[39m
+     [90m 28 |[39m[0m
+
+      at EventEmitter.error (src/services/cacheService.js:25:15)
+      at EventEmitter.silentEmit (node_modules/ioredis/built/Redis.js:529:30)
+      at Socket.<anonymous> (node_modules/ioredis/built/redis/event_handler.js:221:14)
+

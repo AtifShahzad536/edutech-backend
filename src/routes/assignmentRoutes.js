@@ -13,19 +13,26 @@ const {
   deleteAssignment
 } = require('../controllers/assignmentController');
 const { protect, authorize } = require('../middleware/auth');
+const validate = require('../middleware/validate.middleware');
+const { 
+  createAssignmentSchema, 
+  submitAssignmentSchema, 
+  gradeSubmissionSchema 
+} = require('../validators/assignment.validator');
+
 const router = express.Router();
 
-router.use(protect); // All routes require authentication
+router.use(protect);
 
-router.post('/', authorize('instructor', 'admin'), createAssignment);
-router.get('/my', getMyAssignments);                    // Student: all my assignments
+router.post('/', authorize('instructor', 'admin'), validate(createAssignmentSchema), createAssignment);
+router.get('/my', getMyAssignments);
 router.get('/instructor', authorize('instructor', 'admin'), getInstructorAssignments);
 router.get('/course/:courseId', getCourseAssignments);
 router.get('/student/submissions', getStudentSubmissions);
-router.post('/:id/submit', authorize('student', 'admin'), submitAssignment);
-router.patch('/submissions/:id/grade', authorize('instructor', 'admin'), gradeSubmission);
+router.post('/:id/submit', authorize('student', 'admin'), validate(submitAssignmentSchema), submitAssignment);
+router.patch('/submissions/:id/grade', authorize('instructor', 'admin'), validate(gradeSubmissionSchema), gradeSubmission);
 router.get('/:id', getAssignmentById);
-router.put('/:id', authorize('instructor', 'admin'), updateAssignment);
+router.put('/:id', authorize('instructor', 'admin'), validate(createAssignmentSchema), updateAssignment); // Share create schema roughly
 router.delete('/:id', authorize('instructor', 'admin'), deleteAssignment);
 router.get('/:id/submissions', authorize('instructor', 'admin'), getAssignmentSubmissions);
 

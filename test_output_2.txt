@@ -1,0 +1,74 @@
+﻿  console.warn
+    ΓÜá∩╕Å Redis offline. Running in standard mode (No-Cache/Direct-Emails).
+
+    [0m [90m 40 |[39m setTimeout(() [33m=>[39m {
+     [90m 41 |[39m   [36mif[39m ([33m![39mredisStatus[33m.[39misAvailable) {
+    [31m[1m>[22m[39m[90m 42 |[39m     console[33m.[39mwarn([32m'ΓÜá∩╕Å Redis offline. Running in standard mode (No-Cache/Direct-Emails).'[39m)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 43 |[39m     checkClient[33m.[39mdisconnect()[33m;[39m
+     [90m 44 |[39m   }
+     [90m 45 |[39m }[33m,[39m [35m1000[39m)[33m;[39m[0m
+
+      at Timeout.warn [as _onTimeout] (src/config/redis.js:42:13)
+
+  console.log
+    ΓÜí Redis Connected
+
+      at EventEmitter.log (src/services/cacheService.js:16:13)
+
+  console.log
+    ≡ƒÜÇ Redis detected! High-performance features enabled.
+
+      at EventEmitter.log (src/config/redis.js:34:11)
+
+  console.log
+    ≡ƒôº Direct Email Sent: test_id
+
+      at Object.log [as sendEmail] (src/services/emailService.js:50:15)
+
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:09 +0000] "POST /api/auth/register HTTP/1.1" 201 398 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:10 +0000] "POST /api/auth/register HTTP/1.1" 400 487 "-" "-"
+  console.log
+    ≡ƒôº Direct Email Sent: test_id
+
+      at Object.log [as sendEmail] (src/services/emailService.js:50:15)
+
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:10 +0000] "POST /api/auth/register HTTP/1.1" 201 398 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:11 +0000] "POST /api/auth/login HTTP/1.1" 200 391 "-" "-"
+  console.log
+    ≡ƒôº Direct Email Sent: test_id
+
+      at Object.log [as sendEmail] (src/services/emailService.js:50:15)
+
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:12 +0000] "POST /api/auth/register HTTP/1.1" 201 398 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:12 +0000] "POST /api/auth/login HTTP/1.1" 401 406 "-" "-"
+::ffff:127.0.0.1 - - [12/Apr/2026:17:16:12 +0000] "POST /api/auth/register HTTP/1.1" 500 2548 "-" "-"
+  console.log
+    Error Body: {
+      "success": false,
+      "status": "error",
+      "error": {
+        "statusCode": 500,
+        "status": "error"
+      },
+      "message": "Cannot read properties of undefined (reading 'map')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'map')\n    at map (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\src\\middleware\\validate.middleware.js:13:35)\n    at Layer.handle [as handle_request] (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at Function.handle (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n    at router (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n    at Layer.handle [as handle_request] (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express-rate-limit\\dist\\index.cjs:706:9\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at C:\\Users\\atifj\\OneDrive\\Desktop\\edu project\\Backend\\node_modules\\express-rate-limit\\dist\\index.cjs:691:5"
+    }
+
+      at Object.log (src/tests/auth.test.js:88:15)
+
+  console.error
+    Γ¥î Redis Error: read ECONNRESET
+
+    [0m [90m 23 |[39m       [90m// Sliently handle connection refused[39m
+     [90m 24 |[39m     } [36melse[39m {
+    [31m[1m>[22m[39m[90m 25 |[39m       console[33m.[39merror([32m'Γ¥î Redis Error:'[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 26 |[39m     }
+     [90m 27 |[39m   })[33m;[39m
+     [90m 28 |[39m[0m
+
+      at EventEmitter.error (src/services/cacheService.js:25:15)
+      at EventEmitter.silentEmit (node_modules/ioredis/built/Redis.js:529:30)
+      at Socket.<anonymous> (node_modules/ioredis/built/redis/event_handler.js:221:14)
+

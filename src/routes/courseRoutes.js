@@ -9,6 +9,8 @@ const {
   getCourseAnalytics
 } = require('../controllers/courseController');
 const { protect, authorize } = require('../middleware/auth');
+const validate = require('../middleware/validate.middleware');
+const { createCourseSchema, updateCourseSchema } = require('../validators/course.validator');
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ router.post('/:id/enroll-free', protect, authorize('student'), enrollFree);
 router.get('/:id', getCourse);
 
 // Instructor / Admin create/update
-router.post('/', protect, authorize('instructor', 'admin'), createCourse);
-router.put('/:id', protect, authorize('instructor', 'admin'), updateCourse);
+router.post('/', protect, authorize('instructor', 'admin'), validate(createCourseSchema), createCourse);
+router.put('/:id', protect, authorize('instructor', 'admin'), validate(updateCourseSchema), updateCourse);
 
 module.exports = router;

@@ -1,14 +1,15 @@
 const jwt = require('jsonwebtoken');
+const env = require('../config/env');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
+  return jwt.sign({ id }, env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
 
-const sendTokenResponse = (user, statusCode, res) => {
+const formatAuthPayload = (user) => {
   const token = generateToken(user._id.toString());
-
+  
   const userData = {
     id: user._id,
     firstName: user.firstName,
@@ -19,11 +20,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     enrolledCourses: user.enrolledCourses || [],
   };
 
-  res.status(statusCode).json({
-    success: true,
-    token,
-    user: userData,
-  });
+  return { token, user: userData };
 };
 
-module.exports = { generateToken, sendTokenResponse };
+module.exports = { generateToken, formatAuthPayload };

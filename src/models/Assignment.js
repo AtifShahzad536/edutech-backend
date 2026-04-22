@@ -37,4 +37,7 @@ const assignmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Compound index for high-performance assignment lookups
+assignmentSchema.index({ course: 1, status: 1 });
+
 module.exports = mongoose.model('Assignment', assignmentSchema);

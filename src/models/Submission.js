@@ -35,4 +35,7 @@ const submissionSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Compound index for unique student submissions per assignment
+submissionSchema.index({ assignment: 1, student: 1 });
+
 module.exports = mongoose.model('Submission', submissionSchema);
