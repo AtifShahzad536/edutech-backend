@@ -66,6 +66,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'active', message: 'EduTech API is operational' });
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'success', 
+    message: 'Welcome to EduTech API',
+    documentation: 'Visit /api for all endpoints',
+    health: '/health'
+  });
+});
+
 // Handle unhandled routes
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
