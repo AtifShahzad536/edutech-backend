@@ -2,9 +2,17 @@ const mongoose = require('mongoose');
 
 const LessonSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  type: { type: String, enum: ['video', 'text', 'quiz', 'live'], default: 'video' },
+  content: { type: String, default: '' },
   videoUrl: { type: String, default: '' },
   duration: { type: Number, default: 0 },
   isFree: { type: Boolean, default: false },
+  passingScore: { type: Number, default: 80 },
+  quizQuestions: [{
+    questionText: { type: String, required: true },
+    options: [{ type: String, required: true }],
+    correctOptionIndex: { type: Number, required: true, min: 0 }
+  }],
   resources: [{
     title: { type: String },
     url: { type: String },

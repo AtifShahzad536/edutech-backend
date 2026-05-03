@@ -19,7 +19,7 @@ const emailService = {
    */
   sendEmail: async (options) => {
     // 1. Try to use Background Queue if Redis is available
-    if (redisClient && redisClient.isReady) {
+    if (redisClient && redisClient.isAvailable) {
       try {
         await emailQueue.add('send-email', {
           to: options.to,

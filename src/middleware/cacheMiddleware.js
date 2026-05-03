@@ -13,14 +13,14 @@ const cache = (duration = 600) => {
       return next();
     }
 
-    if (!redisClient || !redisClient.isReady) {
+    if (!redisClient || !redisClient.isAvailable || !redisClient.client) {
       return next();
     }
 
     const key = `__express__${req.originalUrl || req.url}`;
     
     try {
-      const cachedResponse = await redisClient.get(key);
+      const cachedResponse = await redisClient.client.get(key);
 
       if (cachedResponse) {
         console.log(`⚡ Cache Hit: ${key}`);
@@ -31,7 +31,7 @@ const cache = (duration = 600) => {
       res.originalJson = res.json;
       res.json = (body) => {
         // Cache the body for the specified duration
-        redisClient.set(key, JSON.stringify(body), 'EX', duration);
+        redisClient.client.set(key, JSON.stringify(body), 'EX', duration);
         res.originalJson(body);
       };
 
@@ -49,10 +49,10 @@ const cache = (duration = 600) => {
  * Utility to clear specific cache keys or patterns
  */
 const clearCache = async (pattern) => {
-  if (!redisClient) return;
-  const keys = await redisClient.keys(`__express__${pattern}`);
+  if (!redisClient || !redisClient.client) return;
+  const keys = await redisClient.client.keys(`__express__${pattern}`);
   if (keys.length > 0) {
-    await redisClient.del(keys);
+    await redisClient.client.del(keys);
     console.log(`🧹 Cleared ${keys.length} cache keys`);
   }
 };

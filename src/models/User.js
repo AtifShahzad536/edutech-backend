@@ -21,10 +21,12 @@ const UserSchema = new mongoose.Schema({
   },
   avatar: { type: String, default: '' },
   bio: { type: String, default: '' },
+  title: { type: String, default: 'Expert Instructor' },
   phone: { type: String, default: '' },
   location: { type: String, default: '' },
   website: { type: String, default: '' },
   linkedin: { type: String, default: '' },
+  twitter: { type: String, default: '' },
   skills: [String],
   experience: [{
     title: String,
@@ -42,6 +44,12 @@ const UserSchema = new mongoose.Schema({
   notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
   enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+  settings: {
+    emailAlerts: { type: Boolean, default: true },
+    studentEnrollment: { type: Boolean, default: true },
+    courseMilestones: { type: Boolean, default: false },
+    platformUpdates: { type: Boolean, default: true }
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

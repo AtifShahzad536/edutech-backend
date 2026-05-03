@@ -14,9 +14,9 @@ const globalLimiter = rateLimit({
   handler: (req, res, next) => {
     next(new AppError('Too many requests from this IP. Please try again later.', 429));
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  skip: () => process.env.NODE_ENV === 'test',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
 });
 
 // 2) Auth Rate Limiter: Stricter limits for Login/Register to prevent brute force/spam
@@ -29,20 +29,20 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV === 'test',
+  skip: () => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
 });
 
 // 3) Burst Limiter: Prevents sudden spikes in a very short window (e.g., duplicate clicks)
 const burstLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 60, // Limit each IP to 60 requests per minute
+  max: 300, // Increased to 300 to support hot-reload in development
   message: 'Slow down! You are sending requests too fast.',
   handler: (req, res, next) => {
     next(new AppError('Too many rapid requests. Please slow down.', 429));
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV === 'test',
+  skip: () => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
 });
 
 module.exports = {

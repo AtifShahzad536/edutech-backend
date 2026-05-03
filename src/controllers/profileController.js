@@ -19,7 +19,27 @@ const importFromLinkedIn = async (req, res, next) => {
   }
 };
 
+const getProfile = async (req, res, next) => {
+  try {
+    const user = await profileService.getProfile(req.user.id);
+    return res.json(successResponse({ user }));
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateSettings = async (req, res, next) => {
+  try {
+    const user = await profileService.updateProfile(req.user.id, { settings: req.body });
+    return res.json(successResponse({ user }, 'Settings updated successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
+  getProfile,
   updateProfile,
-  importFromLinkedIn
+  importFromLinkedIn,
+  updateSettings
 };

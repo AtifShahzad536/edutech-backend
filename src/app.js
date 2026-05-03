@@ -56,8 +56,10 @@ app.use(hpp({
 app.use(cors());
 app.options('*', cors());
 
+const maintenanceMiddleware = require('./middleware/maintenance');
+
 // 2) ROUTES
-app.use('/api', routes);
+app.use('/api', maintenanceMiddleware, routes);
 
 // Health check
 app.get('/health', (req, res) => {

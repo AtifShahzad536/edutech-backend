@@ -2,6 +2,30 @@ const userRepository = require('../repositories/user.repository');
 const AppError = require('../utils/appError');
 const pdf = require('pdf-parse');
 
+const getProfile = async (userId) => {
+  const user = await userRepository.findUserById(userId);
+  if (!user) throw new AppError('User not found', 404);
+
+  return {
+    id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    bio: user.bio,
+    title: user.title,
+    phone: user.phone,
+    location: user.location,
+    website: user.website,
+    linkedin: user.linkedin,
+    twitter: user.twitter,
+    skills: user.skills,
+    experience: user.experience,
+    education: user.education
+  };
+};
+
 const updateProfile = async (userId, updateData) => {
   const user = await userRepository.findUserById(userId);
   if (!user) throw new AppError('User not found', 404);

@@ -1,5 +1,38 @@
 const { z } = require('zod');
 
+const sectionSchema = z.array(
+  z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    order: z.number().optional(),
+    lessons: z.array(
+      z.object({
+        title: z.string(),
+        type: z.string().optional(),
+        content: z.string().optional(),
+        videoUrl: z.string().optional(),
+        duration: z.number().optional(),
+        isFree: z.boolean().optional(),
+        passingScore: z.number().min(0).max(100).optional(),
+        quizQuestions: z.array(
+          z.object({
+            questionText: z.string(),
+            options: z.array(z.string()),
+            correctOptionIndex: z.number().min(0)
+          })
+        ).optional(),
+        resources: z.array(
+          z.object({
+            title: z.string(),
+            url: z.string(),
+            fileType: z.string().optional(),
+          })
+        ).optional(),
+      })
+    ).optional(),
+  })
+).optional();
+
 const createCourseSchema = z.object({
   body: z.object({
     title: z.string().min(3, 'Title is too short'),
@@ -11,28 +44,7 @@ const createCourseSchema = z.object({
     level: z.enum(['beginner', 'intermediate', 'advanced', 'all']).optional(),
     duration: z.number().optional(),
     isPublished: z.boolean().optional(),
-    sections: z.array(
-      z.object({
-        title: z.string(),
-        description: z.string().optional(),
-        order: z.number().optional(),
-        lessons: z.array(
-          z.object({
-            title: z.string(),
-            videoUrl: z.string().optional(),
-            duration: z.number().optional(),
-            isFree: z.boolean().optional(),
-            resources: z.array(
-              z.object({
-                title: z.string(),
-                url: z.string(),
-                fileType: z.string().optional(),
-              })
-            ).optional(),
-          })
-        ).optional(),
-      })
-    ).optional(),
+    sections: sectionSchema,
   })
 });
 
@@ -46,7 +58,8 @@ const updateCourseSchema = z.object({
     category: z.enum(['Development', 'Design', 'Data Science', 'Business', 'Marketing']).optional(),
     level: z.enum(['beginner', 'intermediate', 'advanced', 'all']).optional(),
     isPublished: z.boolean().optional(),
-  }).strict() // ensure no other unexpected fields
+    sections: sectionSchema,
+  })
 });
 
 module.exports = {

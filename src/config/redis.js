@@ -31,19 +31,20 @@ const redisStatus = {
 
 // Perform the check only if NOT in test environment
 if (process.env.NODE_ENV !== 'test') {
-  checkClient.on('connect', () => {
-    console.log('🚀 Redis detected! High-performance features enabled.');
-    redisStatus.isAvailable = true;
-    redisStatus.client = checkClient;
-  });
-
-  // After 1 second, if not connected, we assume it's offline for this session
+  // After 3 seconds, if not connected, declare Redis offline for this session
   const timer = setTimeout(() => {
     if (!redisStatus.isAvailable) {
       console.warn('⚠️ Redis offline. Running in standard mode (No-Cache/Direct-Emails).');
       checkClient.disconnect();
     }
-  }, 1000);
+  }, 3000);
+
+  checkClient.on('connect', () => {
+    clearTimeout(timer);
+    console.log('🚀 Redis detected! High-performance features enabled.');
+    redisStatus.isAvailable = true;
+    redisStatus.client = checkClient;
+  });
   
   // Ensure the timer doesn't keep the process alive
   timer.unref();

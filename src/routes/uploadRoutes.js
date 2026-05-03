@@ -10,7 +10,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for assignments
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit for video/course uploads
 });
 
 router.get('/signature', protect, getUploadSignature);

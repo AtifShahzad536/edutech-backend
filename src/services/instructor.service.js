@@ -2,6 +2,7 @@ const courseRepository = require('../repositories/course.repository');
 const assignmentRepository = require('../repositories/assignment.repository');
 const submissionRepository = require('../repositories/submission.repository');
 const userRepository = require('../repositories/user.repository');
+const CourseProgress = require('../models/CourseProgress');
 
 class InstructorService {
   async getInstructorStats(instructorId) {
@@ -23,8 +24,44 @@ class InstructorService {
       { populate: [{ path: 'student', select: 'firstName lastName avatar' }, { path: 'assignment', select: 'title' }], sort: { submittedAt: -1 } }
     ).then(subs => subs.slice(0, 5));
 
+    const allCourseProgress = await CourseProgress.find({ course: { $in: courseIds } }).populate('course', 'price');
+    
+    // Calculate engagement (Average progress of all students in instructor's courses)
+    const totalProgress = allCourseProgress.reduce((sum, p) => sum + (p.progressPercent || 0), 0);
+    const avgEngagement = allCourseProgress.length > 0 ? Math.round(totalProgress / allCourseProgress.length) : 0;
+
+    // Calculate monthly analytics (last 6 months)
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const analyticsHistory = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      
+      const monthlyEnrollments = allCourseProgress.filter(p => {
+        const pDate = new Date(p.createdAt);
+        return pDate.getMonth() === d.getMonth() && pDate.getFullYear() === year;
+      });
+      
+      const revenue = monthlyEnrollments.reduce((sum, p) => sum + (p.course?.price || 0), 0);
+      analyticsHistory.push({ 
+        month: monthLabel, 
+        revenue, 
+        students: monthlyEnrollments.length 
+      });
+    }
+
     return {
-      stats: { totalCourses: courses.length, totalStudents, activeAssignments, totalRevenue, rating: avgRating },
+      stats: { 
+        totalCourses: courses.length, 
+        totalStudents, 
+        activeAssignments, 
+        totalRevenue, 
+        rating: avgRating,
+        engagement: avgEngagement
+      },
+      analyticsHistory,
       recentSubmissions: recentSubmissions.map(s => ({
         id: s._id,
         studentName: `${s.student?.firstName} ${s.student?.lastName}`,

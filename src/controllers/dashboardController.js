@@ -4,7 +4,8 @@ const { successResponse } = require('../utils/response.util');
 const getDashboardStats = async (req, res, next) => {
   try {
     const data = await dashboardService.getDashboardStats(req.user.id);
-    return res.json(successResponse(data));
+    // Spread at top level so frontend can access data.stats, data.activityStats, etc. directly
+    return res.json({ success: true, ...data });
   } catch (error) { next(error); }
 };
 

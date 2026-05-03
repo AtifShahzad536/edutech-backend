@@ -70,11 +70,21 @@ const updateCourse = async (req, res, next) => {
   }
 };
 
+const deleteCourse = async (req, res, next) => {
+  try {
+    await courseService.deleteCourse(req.params.id, req.user);
+    return res.json(successResponse(null, 'Course deleted successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCourses,
   getCourse,
   createCourse,
   updateCourse,
+  deleteCourse,
   enrollFree,
   getEnrolledCourses,
   getCourseAnalytics

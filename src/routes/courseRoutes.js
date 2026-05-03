@@ -4,6 +4,7 @@ const {
   getCourse,
   createCourse,
   updateCourse,
+  deleteCourse,
   enrollFree,
   getEnrolledCourses,
   getCourseAnalytics
@@ -25,8 +26,9 @@ router.post('/:id/enroll-free', protect, authorize('student'), enrollFree);
 // Public single course
 router.get('/:id', getCourse);
 
-// Instructor / Admin create/update
+// Instructor / Admin create/update/delete
 router.post('/', protect, authorize('instructor', 'admin'), validate(createCourseSchema), createCourse);
 router.put('/:id', protect, authorize('instructor', 'admin'), validate(updateCourseSchema), updateCourse);
+router.delete('/:id', protect, authorize('instructor', 'admin'), deleteCourse);
 
 module.exports = router;

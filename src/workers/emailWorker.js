@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const nodemailer = require('nodemailer');
-const redisClient = require('../config/redis');
+const redisStatus = require('../config/redis');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -65,11 +65,11 @@ const startWorker = () => {
   }
 };
 
-// Delay worker start slightly to allow redisClient to detect status
+// Delay worker start slightly to allow redisStatus to detect status
 // Skip worker initialization in test environment to avoid open handles
 if (process.env.NODE_ENV !== 'test') {
   setTimeout(() => {
-    if (redisClient && redisStatus.isAvailable) {
+    if (redisStatus && redisStatus.isAvailable) {
       startWorker();
     }
   }, 1000);

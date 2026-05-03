@@ -1,5 +1,5 @@
 const express = require('express');
-const { updateProfile, importFromLinkedIn } = require('../controllers/profileController');
+const { getProfile, updateProfile, importFromLinkedIn, updateSettings } = require('../controllers/profileController');
 const { protect } = require('../middleware/auth');
 const multer = require('multer');
 const validate = require('../middleware/validate.middleware');
@@ -14,7 +14,9 @@ const upload = multer({
 
 router.use(protect);
 
+router.get('/', getProfile);
 router.patch('/', validate(updateProfileSchema), updateProfile);
 router.post('/import-linkedin', upload.single('document'), importFromLinkedIn);
+router.patch('/settings', updateSettings);
 
 module.exports = router;

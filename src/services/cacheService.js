@@ -1,83 +1,48 @@
-const Redis = require('ioredis');
-
-let redisConnected = false;
-let redis = null;
-
-if (process.env.NODE_ENV !== 'test') {
-  try {
-    redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      maxRetriesPerRequest: 0, // Fail immediately
-      showFriendlyErrorStack: true,
-      enableOfflineQueue: false, // Don't queue commands if down
-      lazyConnect: true, // Don't connect until used
-    });
-
-    redis.on('connect', () => {
-      redisConnected = true;
-      console.log('⚡ Redis Connected');
-    });
-
-    redis.on('error', (err) => {
-      redisConnected = false;
-      // Only log once to avoid spam
-      if (err.code === 'ECONNREFUSED') {
-        // Sliently handle connection refused
-      } else {
-        console.error('❌ Redis Error:', err.message);
-      }
-    });
-
-    // Try to connect once
-    redis.connect().catch(() => {
-      redisConnected = false;
-    });
-  } catch (err) {
-    console.error('❌ Redis Init Failed:', err.message);
-  }
-}
+const redisStatus = require('../config/redis');
 
 const cacheService = {
   // Get data from cache
   get: async (key) => {
-    if (!redisConnected) return null;
+    if (!redisStatus.isAvailable || !redisStatus.client) return null;
     try {
-      const data = await redis.get(key);
+      const data = await redisStatus.client.get(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
+      console.error(`❌ Cache Get Error [${key}]:`, error.message);
       return null;
     }
   },
 
   // Set data to cache with TTL
   set: async (key, data, ttl = 3600) => {
-    if (!redisConnected) return;
+    if (!redisStatus.isAvailable || !redisStatus.client) return;
     try {
-      await redis.set(key, JSON.stringify(data), 'EX', ttl);
+      await redisStatus.client.set(key, JSON.stringify(data), 'EX', ttl);
     } catch (error) {
-      // Ignore
+      console.error(`❌ Cache Set Error [${key}]:`, error.message);
     }
   },
 
   // Delete from cache
   del: async (key) => {
-    if (!redisConnected) return;
+    if (!redisStatus.isAvailable || !redisStatus.client) return;
     try {
-      await redis.del(key);
+      await redisStatus.client.del(key);
     } catch (error) {
-      // Ignore
+      console.error(`❌ Cache Del Error [${key}]:`, error.message);
     }
   },
 
   // Clear pattern
   clearPattern: async (pattern) => {
-    if (!redisConnected) return;
+    if (!redisStatus.isAvailable || !redisStatus.client) return;
     try {
-      const keys = await redis.keys(pattern);
+      const keys = await redisStatus.client.keys(pattern);
       if (keys.length > 0) {
-        await redis.del(keys);
+        await redisStatus.client.del(keys);
       }
     } catch (error) {
-      // Ignore
+      console.error(`❌ Cache Clear Error [${pattern}]:`, error.message);
     }
   }
 };

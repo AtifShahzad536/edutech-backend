@@ -46,8 +46,23 @@ const getMe = async (userId) => {
   return user;
 };
 
+const changePassword = async (userId, currentPassword, newPassword) => {
+  const user = await userRepository.findUserById(userId, true);
+  if (!user) throw new AppError('User not found', 404);
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw new AppError('Current password is incorrect', 401);
+  }
+
+  user.password = newPassword;
+  await user.save();
+  return true;
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  changePassword,
 };

@@ -38,22 +38,27 @@ const getAllCourses = async ({ q, category, level, page = 1, limit = 20, sort = 
     return { ...cached, source: 'cache' };
   }
 
-  const [courses, total] = await Promise.all([
-    courseRepository.findCourses(query, sort, skip, limitNum),
-    courseRepository.countCourses(query)
-  ]);
+  try {
+    const [courses, total] = await Promise.all([
+      courseRepository.findCourses(query, sort, skip, limitNum),
+      courseRepository.countCourses(query)
+    ]);
 
-  const payload = {
-    count: courses.length,
-    total,
-    page: pageNum,
-    pages: Math.ceil(total / limitNum),
-    data: courses
-  };
+    const payload = {
+      count: courses.length,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+      data: courses
+    };
 
-  if (!q) await cacheService.set(cacheKey, payload, 600);
+    if (!q) await cacheService.set(cacheKey, payload, 600);
 
-  return { ...payload, source: 'database' };
+    return { ...payload, source: 'database' };
+  } catch (err) {
+    console.error('❌ Service Error (getAllCourses):', err);
+    throw err;
+  }
 };
 
 const getCourseById = async (id) => {
@@ -153,6 +158,19 @@ const updateCourse = async (courseId, data, user) => {
   return course;
 };
 
+const deleteCourse = async (courseId, user) => {
+  const course = await courseRepository.findCourseById(courseId);
+  if (!course) throw new AppError('Course not found', 404);
+
+  if (course.instructorId._id.toString() !== user.id && user.role !== 'admin') {
+    throw new AppError('Not authorized to delete this course', 403);
+  }
+
+  await courseRepository.deleteCourse(courseId);
+  await cacheService.del('all_courses');
+  return { success: true };
+};
+
 module.exports = {
   getAllCourses,
   getCourseById,
@@ -160,5 +178,6 @@ module.exports = {
   enrollFreeCourse,
   getEnrolledCourses,
   getAnalytics,
-  updateCourse
+  updateCourse,
+  deleteCourse
 };
