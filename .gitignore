@@ -89,3 +89,9 @@ out/
 *.swp
 *.swo
 *.DS_Store
+
+# Test outputs and debug scripts
+test_output*.txt
+test_*.js
+debug_live.js
+dump_users.js
